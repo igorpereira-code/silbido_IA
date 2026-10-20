@@ -1,0 +1,15 @@
+posición,gen,mín,máx,unidad,escala,valor con x=0.5
+0,amp_h1,0.0,1.0,lineal,lineal,0.5
+1,amp_h2,0.0,1.0,lineal,lineal,0.5
+2,amp_h3,0.0,1.0,lineal,lineal,0.5
+3,amp_h4,0.0,1.0,lineal,lineal,0.5
+4,amp_h5,0.0,1.0,lineal,lineal,0.5
+5,amp_h6,0.0,1.0,lineal,lineal,0.5
+6,amp_h7,0.0,1.0,lineal,lineal,0.5
+7,amp_h8,0.0,1.0,lineal,lineal,0.5
+8,ataque,0.005,0.3,s,logarítmica,0.0387
+9,decaimiento,0.02,1.0,s,logarítmica,0.1414
+10,sostenido,0.0,1.0,lineal,lineal,0.5
+11,liberacion,0.02,0.5,s,logarítmica,0.1
+12,vib_frec,0.0,8.0,Hz,lineal,4.0
+13,vib_prof,0.0,0.02,fracción f0,lineal,0.01

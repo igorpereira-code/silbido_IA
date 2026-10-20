@@ -1,0 +1,4 @@
+niveles por gen,combinaciones,fracción explorada por el AG,años para probarlas todas
+10,10^14 = 1e14,1.4e-11,7.9e+03
+100,100^14 = 1e28,1.4e-25,7.9e+17
+1000,1000^14 = 1e42,1.4e-39,7.9e+31
