@@ -38,19 +38,53 @@ Pero población y generaciones **cambian el costo**, así que esa comparación n
 A igual costo, con este fitness, conviene una población pequeña con más generaciones. Esto matiza el tornado del
 Rol 5, que no igualaba el presupuesto.
 
-## 4. Convergencia prematura y deriva genética
-- **Convergencia prematura** = la diversidad cae a ~0 mientras el fitness aún está lejos del mejor conocido.
-  Criterio usado: diversidad final < 0.05 **y** fitness a más de 0.01 del mejor encontrado en todos los experimentos.
-  Resultado: **0 de 80 corridas**. La más cercana es pob=10, que colapsa su diversidad (0.002) pero sin perder fitness.
-  No se presentó como problema con esta función; se dejó la opción de inmigrantes aleatorios (`inmigrantes`),
-  que se activa si la diversidad baja de 0.05, y se mide su costo en evaluaciones.
-- **Deriva genética** = genes casi neutrales se fijan en valores al azar. Se mide con la desviación de cada gen
-  del mejor individuo entre semillas (`results/tablas/rol4_deriva_genes.csv`). Un uniforme en [0,1] tiene
-  desviación ≈ 0.29: genes con valores cercanos a eso (ej. `vib_frec`: 0.365) no están determinados por el fitness; genes con
-  desviación ≈ 0.01 (`amp_h1`, `ataque`) sí convergen al mismo valor en todas las corridas.
+## 4. Pregunta teórica: ¿qué es la convergencia prematura? ¿Cómo se detecta y cómo se evita?
+**Qué es.** La población se vuelve casi idéntica (diversidad ≈ 0) antes de llegar a una buena solución, y el AG ya no
+puede mejorar: los cruces entre individuos iguales no crean nada nuevo y la mutación es muy pequeña para escapar.
+
+**Cómo se detecta.** Con dos señales a la vez: diversidad < 0.05 (diversidad = desviación media por gen, normalizada)
+**y** fitness final a más de 0.01 del mejor encontrado en todos los experimentos (0.9994). Que la diversidad baje
+sola no basta: al final de una corrida buena también baja (convergencia sana).
+
+**Evidencia concreta.** En las 16 configuraciones normales hubo **0 corridas prematuras** (pob=10 colapsa su diversidad,
+0.002, pero sin perder fitness). Para tener un caso real se **provocó** (población 8, mutación 0.01):
+
+| Configuración | fitness final | diversidad final | gen. de colapso | corridas prematuras |
+|---|---|---|---|---|
+| base (30, pm defecto) | 0.9968 | 0.020 | 40 | 0 de 5 |
+| prem: pob=8, pm=0.01 | 0.9822 | 0.0001 | 6 | **5 de 5** |
+| prem + inmigrantes | 0.9831 | 0.540 | — | 0 de 5 |
+| prem + pm=0.15 | 0.9912 | 0.004 | 39 | 2 de 5 |
+| prem + pob=30 | 0.9931 | 0.010 | 24 | 0 de 5 |
+
+La población provocada colapsa en la generación ~6 y se queda 0.017 por debajo del mejor (gráfico
+`rol4_prematura_remedios.png`).
+
+**Cómo se evita (según los datos).** Más población y, sobre todo, más mutación recuperan el fitness
+(0.9822 → 0.9931 y 0.9912). Los inmigrantes aleatorios **restauran la diversidad** (0.0001 → 0.54) pero casi no
+mejoran el fitness (0.9822 → 0.9831): un individuo aleatorio casi nunca supera a los élites y solo cuesta evaluaciones
+(+71). Es decir, diversidad alta no equivale a mejor resultado.
+
+**Deriva genética** = genes casi neutrales se fijan en valores al azar. Se mide con la desviación de cada gen del
+mejor individuo entre semillas (`results/tablas/rol4_deriva_genes.csv`). Un uniforme en [0,1] tiene desviación ≈ 0.29:
+genes con valores cercanos o mayores (ej. `vib_frec`: 0.365) no están determinados por el fitness; genes con
+desviación ≈ 0.01 (`amp_h1`, `ataque`) sí convergen al mismo valor en todas las corridas.
 
 ## 5. Limitaciones (decirlas antes de que pregunten)
 - Cifras con fitness provisional y solo 5 semillas; las diferencias de 0.001–0.002 están dentro del ruido
   (desviación entre semillas ≈ 0.001–0.003). Solo población y generaciones muestran efecto claro.
 - Se varió un parámetro a la vez; no se midieron interacciones.
 - El fitness del Rol 2 real puede cambiar el orden de importancia.
+
+## 6. Resumen de lo entregado frente a lo pedido
+- AG completo y funcional: `src/rol4_ag.py` (14 tests).
+- Tabla experimental: **20 configuraciones** (16 variando un parámetro + 4 del caso provocado), 5 semillas cada una.
+- Curvas de convergencia **por configuración**: `results/graficos/rol4_convergencia_todas.png` y gráficos agrupados.
+- Análisis "¿qué hiperparámetro importa más?": sección 3.
+- Estancamiento prematuro y deriva genética: sección 4.
+
+## Referencias
+- Goldberg, D. E. (1989). *Genetic Algorithms in Search, Optimization and Machine Learning*. Addison-Wesley.
+- Eiben, A. E. & Smith, J. E. (2015). *Introduction to Evolutionary Computing* (2.ª ed.). Springer.
+- Michalewicz, Z. (1996). *Genetic Algorithms + Data Structures = Evolution Programs* (3.ª ed.). Springer.
+- De Jong, K. A. (1975). *An Analysis of the Behavior of a Class of Genetic Adaptive Systems*. Tesis doctoral, Univ. de Michigan.

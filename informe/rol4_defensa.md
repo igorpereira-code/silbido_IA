@@ -13,8 +13,8 @@ el resultado nunca es peor que lo ya visto.
 la búsqueda aleatoria del Rol 5). Opcional: estancamiento (paciencia 10 generaciones sin mejorar > 1e-4).
 
 **¿Qué es convergencia prematura?** La población se vuelve casi idéntica (diversidad ≈ 0) antes de llegar a una buena
-solución, y ya no puede mejorar. Se detecta con diversidad < 0.05 y fitness lejos del mejor conocido. En nuestros
-datos no ocurrió en ninguna de las 80 corridas. Se previene con población mayor, mutación y/o inmigrantes.
+solución, y ya no puede mejorar. Se detecta con diversidad < 0.05 y fitness lejos del mejor conocido. En las
+configuraciones normales no ocurrió; la provocamos (pob 8, pm 0.01): 5 de 5 corridas, colapso en la generación ~6. Se evita con más población y más mutación (0.982 → 0.993 y 0.991). Los inmigrantes recuperan la diversidad pero casi no mejoran el fitness.
 
 **¿Qué es la deriva genética?** En poblaciones finitas, genes que no afectan el fitness cambian y se fijan por azar.
 Es más fuerte con poblaciones pequeñas. La vemos en los genes con desviación entre semillas alta.

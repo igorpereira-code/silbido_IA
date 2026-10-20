@@ -66,6 +66,13 @@ def configuraciones(base: dict) -> dict:
     for n in (10, 60):
         cfgs[f"pob={n} (=presup.)"] = var(poblacion=n,
                                           generaciones=generaciones_para_presupuesto(presupuesto, n, e0))
+    # (c) caso PROVOCADO de convergencia prematura y sus remedios (población chica + casi sin mutación)
+    prem = var(poblacion=8, pm=0.01)
+    cfgs["prem: pob=8 pm=0.01"] = prem
+    cfgs["prem + inmigrantes"] = {**copy.deepcopy(prem),
+                                  "inmigrantes": {"umbral": UMBRAL_DIVERSIDAD, "fraccion": 0.25}}
+    cfgs["prem + pm=0.15"] = {**copy.deepcopy(prem), "operadores": {**prem["operadores"], "pm": 0.15}}
+    cfgs["prem + pob=30"] = {**copy.deepcopy(prem), "poblacion": 30}
     return cfgs
 
 
@@ -165,6 +172,30 @@ def graficar_convergencia(historiales, nombres, carpeta=None, nombre="rol4_conve
     for a in ax:
         a.grid(alpha=0.3)
     ax[0].legend(fontsize=8)
+    fig.tight_layout()
+    _guardar(fig, carpeta, nombre)
+    return fig
+
+
+def graficar_todas(historiales, carpeta=None, nombre="rol4_convergencia_todas.png", columnas=4):
+    """Una curva de convergencia POR CONFIGURACIÓN (máximo y media, ±1 desv. del máximo entre semillas)
+    con la diversidad en el eje derecho."""
+    nombres = list(historiales)
+    filas = int(np.ceil(len(nombres) / columnas))
+    fig, axs = plt.subplots(filas, columnas, figsize=(4.2 * columnas, 3.2 * filas), sharey=True)
+    axs = np.atleast_1d(axs).ravel()
+    for a, n in zip(axs, nombres):
+        mx, md, dv = (_matriz(historiales[n], k) for k in ("max", "media", "diversidad"))
+        g = np.arange(mx.shape[1])
+        a.plot(g, mx.mean(0), color="C0", label="máx")
+        a.fill_between(g, mx.mean(0) - mx.std(0), mx.mean(0) + mx.std(0), color="C0", alpha=0.2)
+        a.plot(g, md.mean(0), color="C1", label="media")
+        b = a.twinx(); b.plot(g, dv.mean(0), color="C2", ls="--", lw=1); b.set_ylim(0, 1)
+        a.set_title(n, fontsize=9); a.grid(alpha=0.3); a.set_xlabel("generación", fontsize=8)
+    for a in axs[len(nombres):]:
+        a.axis("off")
+    axs[0].legend(fontsize=7, loc="lower right")
+    fig.suptitle("Convergencia por configuración (azul: máx, naranja: media, verde punteado: diversidad)", y=1.0)
     fig.tight_layout()
     _guardar(fig, carpeta, nombre)
     return fig
