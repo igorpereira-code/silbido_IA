@@ -13,19 +13,22 @@ el resultado nunca es peor que lo ya visto.
 la búsqueda aleatoria del Rol 5). Opcional: estancamiento (paciencia 10 generaciones sin mejorar > 1e-4).
 
 **¿Qué es convergencia prematura?** La población se vuelve casi idéntica (diversidad ≈ 0) antes de llegar a una buena
-solución, y ya no puede mejorar. Se detecta con diversidad < 0.05 y fitness lejos del mejor conocido. En las
-configuraciones normales no ocurrió; la provocamos (pob 8, pm 0.01): 5 de 5 corridas, colapso en la generación ~6. Se evita con más población y más mutación (0.982 → 0.993 y 0.991). Los inmigrantes recuperan la diversidad pero casi no mejoran el fitness.
+solución, y ya no puede mejorar. Se detecta con diversidad < 0.05 y fitness a más de 0.01 del mejor conocido. En las
+configuraciones normales apareció en 3 de 80 corridas; la provocamos (pob 8, pm 0.01): 5 de 5 corridas, colapso hacia la
+generación 9. Se evita con más población y más mutación (0.8835 → 0.9052 y 0.8993). Los inmigrantes recuperan la
+diversidad pero mejoran poco el fitness (0.8890).
 
 **¿Qué es la deriva genética?** En poblaciones finitas, genes que no afectan el fitness cambian y se fijan por azar.
 Es más fuerte con poblaciones pequeñas. La vemos en los genes con desviación entre semillas alta.
 
-**¿Qué hiperparámetro importa más?** Población y generaciones. Pero ambos cuestan evaluaciones; a igual
-presupuesto la población pequeña ganó (pob 10: 0.9985 vs pob 60: 0.9950 con ~1430 evaluaciones).
+**¿Qué hiperparámetro importa más?** Población y generaciones (efectos 0.0067 y 0.0040 con mismas generaciones). Pero ambos
+cuestan evaluaciones: con ~400 evaluaciones gana la población pequeña (0.9022 vs 0.8906) y con ~1430 hay empate
+(0.9072 vs 0.9069).
 
-**¿Por qué la diferencia de elitismo es tan chica?** Está dentro del ruido entre semillas (~0.001). No afirmamos
+**¿Por qué la diferencia de elitismo es tan chica?** Está dentro del ruido entre semillas (desviación 0.0004–0.004). No afirmamos
 que importe.
 
-**¿Los resultados son definitivos?** No: se hicieron con el fitness provisional; se repiten con el real del Rol 2.
+**¿Los resultados son definitivos?** Usan el fitness real del Rol 2, pero con solo 5 semillas: las diferencias pequeñas están dentro del ruido.
 
 **¿Usaron algo de deep learning?** No. Solo numpy, un AG real-codificado y operadores clásicos.
 
