@@ -1,4 +1,4 @@
 combinacion,fitness_media,fitness_std,mejor,peor,gen_al_95,div_gen10,div_final
-C3 Balance (torneo + blend α=0.5 + no-uniforme),0.9968,0.0023,0.9988,0.9931,35.6,0.4219,0.0199
-C1 Explotación (torneo + blend α=0.3 + gaussiana σ=0.03),0.9932,0.0019,0.9952,0.9904,43.8,0.1372,0.0403
-C2 Exploración (ruleta + uniforme + mut. uniforme),0.9928,0.0018,0.9949,0.99,40.6,0.6942,0.6416
+C3 Balance (torneo + blend α=0.5 + no-uniforme),0.9051,0.004,0.909,0.9001,24.0,0.4682,0.0146
+C2 Exploración (ruleta + uniforme + mut. uniforme),0.9015,0.0029,0.9058,0.8979,36.0,0.7314,0.7395
+C1 Explotación (torneo + blend α=0.3 + gaussiana σ=0.03),0.8987,0.0048,0.9045,0.8913,31.2,0.1375,0.0355
