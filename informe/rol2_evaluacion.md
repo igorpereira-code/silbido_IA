@@ -16,9 +16,9 @@ python -m pytest tests -q
 ```
 
 No se modifican módulos de otros roles ni `notebooks/final.ipynb`.
-Mientras falte `rol1_codificacion.py`, se usa su codificación provisional con un
-aviso. Al integrarlo se usa automáticamente `rol1.decodificar`, incluida su escala
-logarítmica. Los experimentos detectan igualmente el módulo real del rol 4.
+El notebook ejecutado usa `src.rol1_codificacion` con tiempos logarítmicos y
+`src.rol4_ag`. La primera celda imprime los nombres de ambos módulos para
+verificar la integración.
 
 ## Síntesis y métricas
 
@@ -42,41 +42,45 @@ No se usa MSE sobre muestras crudas: un desplazamiento de fase puede dar un erro
 grande entre sonidos de igual tono y timbre. STFT reduce esa sensibilidad, aunque
 no es completamente invariante a cambios de alineación temporal.
 
-## Evidencia inicial (20 de octubre de 2026)
+## Resultados con los módulos reales (24 de octubre de 2026)
 
-Notebook ejecutado con codificación y AG provisionales, 20 individuos,
-20 generaciones, elitismo 2, semillas 0, 1 y 2. No son las corridas finales del grupo.
+Notebook ejecutado desde cero con la codificación logarítmica del Rol 1 y el AG
+real del Rol 4. Se conservaron 20 individuos, 20 generaciones, elitismo 2 y las
+semillas 0, 1 y 2 para comparar ambas métricas con el mismo presupuesto.
+Esta comparación del Rol 2 usa una configuración menor que la final del grupo.
 
 | Semilla | Objetivo del AG | STFT del ganador | Croma del ganador |
-| --- | --- | --- | --- |
-| 0 | STFT | 0.8913 | 0.9121 |
-| 0 | Croma | 0.8508 | 0.9624 |
-| 1 | STFT | 0.8829 | 0.8080 |
-| 1 | Croma | 0.8431 | 0.9793 |
-| 2 | STFT | 0.8940 | 0.7134 |
-| 2 | Croma | 0.8347 | 0.9787 |
+| --- | --- | ---: | ---: |
+| 0 | STFT | 0.8962 | 0.6825 |
+| 0 | Croma | 0.8701 | 0.9764 |
+| 1 | STFT | 0.8911 | 0.6030 |
+| 1 | Croma | 0.8444 | 0.9783 |
+| 2 | STFT | 0.8933 | 0.1837 |
+| 2 | Croma | 0.8704 | 0.9779 |
 
-Las métricas no seleccionaron el mismo cromosoma en ninguna de las tres semillas.
-Recomendación al Rol 4: optimizar STFT por su resolución de armónicos y usar croma
-como contraste. La tabla apoya que los objetivos difieren; no demuestra por sí
-sola superioridad perceptiva. Hay audios comparativos para escucharlos.
+Las métricas seleccionaron cromosomas distintos en las tres semillas. Optimizar
+croma da valores cercanos a 0.98 en esa métrica, pero un STFT menor que al
+optimizar STFT. Recomendación al Rol 4: usar STFT como objetivo principal por
+su resolución de armónicos y croma como contraste. Estas puntuaciones no
+demuestran por sí solas cuál audio suena mejor; hay clips comparativos.
 
-Sobre 100 individuos aleatorios (semilla 2026), STFT tardó 2.48 ms por evaluación
-y croma 2.58 ms en este equipo, después del calentamiento. STFT dio 0.7294 a
-0.8514 (media 0.7916). Los tiempos dependen del equipo. No debe confundirse esta
-comparación con una prueba aislada del efecto del umbral: también cambió la referencia.
+En 100 individuos aleatorios (semilla 2026), STFT tardó 5.64 ms por evaluación
+y croma 5.88 ms en este equipo, después del calentamiento. Para STFT, los
+valores aleatorios fueron de 0.7261 a 0.8705 (media 0.7984). Los tiempos
+dependen del equipo y del entorno de Python, y quedan por debajo del umbral
+de 20 ms indicado para los experimentos.
 
-Las 22 pruebas pasaron (14 casos del rol 2 y 8 del rol 3), también al cargar en
-memoria la codificación real de `origin/rol1-codificacion`. Incluyen una referencia
-sintética conocida con fitness 1, silencio con fitness 0, validación de entradas,
-duraciones, tono, rango, reproducibilidad y uso dentro del AG existente.
+Las 36 pruebas del repositorio pasaron con los módulos integrados. Las del
+Rol 2 incluyen una referencia sintética con fitness 1, silencio con fitness 0,
+validación de entradas, duración, tono, rango, reproducibilidad y uso del AG.
 
 ## Pregunta 2: superficie de fitness
 
 Es la función que asigna una puntuación a cada punto del espacio de cromosomas.
 El gráfico `results/graficos/rol2_superficie_fitness.png` es un corte de esa
 superficie: varía únicamente el ataque de 0 a 1 y fija los otros trece genes.
-En esta corrida STFT favorece ataques cortos; croma alcanza un máximo interior.
+En la corrida integrada, STFT favorece ataques cortos pero cambia poco en este
+corte; croma alcanza un máximo interior cerca de 0.67 del gen normalizado.
 Una superficie relativamente suave permite que mutaciones pequeñas conserven
 calidad y exploren mejoras. Mesetas o picos estrechos dificultan la selección.
 Un AG no necesita derivadas; tampoco se garantiza un óptimo global por suavidad.
@@ -87,18 +91,25 @@ La conversión a muestras y el umbral de bandas pueden producir discontinuidades
 - Cromosoma → decodificación → armónicos + ADSR + vibrato → audio.
 - Misma nota La4 y duración para candidato y piano real.
 - STFT en dB como objetivo; croma como segunda métrica; mayor = mejor.
-- Mostrar la curva del ataque y el tiempo de aproximadamente 2.5 ms/evaluación.
+- Mostrar la curva del ataque y el tiempo de aproximadamente 5.6 ms/evaluación
+  para STFT en este equipo.
 - Reproducir `rol2_referencia.wav`, `rol2_gen0.wav` y `rol2_mejor_stft.wav`
   de `results/audios/`.
 
-## Límites e integración pendiente del grupo
+## Límites e integración actual
+
+La codificación del Rol 1 y el AG del Rol 4 ya están integrados. Los archivos
+de `results/` con prefijo `rol2_` se regeneraron con ambos módulos reales.
+El AG del grupo y `final.ipynb` usan STFT como fitness principal. Este notebook
+compara STFT y croma en tres semillas; sus números corresponden a una
+configuración menor que la evaluación final del grupo.
 
 Ocho armónicos con ADSR común aproximan el piano: no modelan el martillo,
 inarmonicidad ni decaimiento independiente por armónico. La referencia real no
 tiene un gen exacto y no se espera fitness 1. No se publica `GEN_REFERENCIA`,
 para que los notebooks existentes utilicen el WAV real.
 
-El audio real es una sola nota; en el notebook final no equivale a la melodía
-completa sintetizada. Igor deberá tenerlo en cuenta al integrar la comparación.
-Al integrar roles 1 y 4, repetir este notebook y los experimentos del grupo:
-la codificación logarítmica cambia el paisaje en coordenadas normalizadas.
+La referencia real es una sola nota La4, que permite comparar timbres con
+rapidez. El mejor gen sintetiza después la melodía completa que extrajo el
+Rol 1. Al mostrar audios comparativos hay que distinguir la nota real de
+referencia de la melodía sintetizada.
