@@ -42,7 +42,14 @@
    - Test de Mann-Whitney U unilateral: U = 100, **p = 9·10⁻⁵**. No asume normalidad.
    - **A₁₂ de Vargha-Delaney = 1.0:** en todos los pares, la corrida del AG supera a la aleatoria. El AG gana en **10 de 10** semillas.
    - **Curva de mejor fitness contra evaluaciones:** los dos métodos van parejos las primeras ~150 evaluaciones. Después la búsqueda aleatoria se estanca en ~0.88, porque mejorar al azar en 14 dimensiones es cada vez menos probable. El AG sigue subiendo porque aprovecha la información de la población.
-4. **Validación auditiva:** una encuesta ciega a 5–10 personas puntúa Gen 0, la referencia y el mejor evolucionado.
+4. **Validación auditiva (encuesta ciega, 6 personas).** Se compararon el mejor evolucionado (clip A) y Gen 0 (clip B) sin decir cuál era cuál. La pregunta del instrumento se hizo antes de que escucharan el piano real.
+
+   | Audio              | Identificado como piano | Melodía reconocible (1–5) | Parecido al piano real (1–5) |
+   | ------------------ | ----------------------- | ------------------------- | ---------------------------- |
+   | Mejor evolucionado | **100%**                | 4.0                       | **2.33**                     |
+   | Gen 0              | 83%                     | 4.0                       | 2.00                         |
+
+   El mejor evolucionado gana en las dos medidas de timbre: ninguna persona lo puntuó peor que Gen 0 y una confundió Gen 0 con un órgano. Aun así, la diferencia es pequeña, por dos razones. Gen 0 ya es el mejor de 30 individuos aleatorios, y el sintetizador aditivo con ADSR suena "a piano" desde el inicio, así que la mejora numérica (0.87 → 0.91) se percibe poco. Además, ambos quedan lejos del piano real (~2/5), lo que confirma el techo del sintetizador. La melodía se reconoce igual en ambos (4/5): depende de la detección de pitch del Rol 1, no del AG.
 
 **Sensibilidad (tornado).**
 
@@ -53,7 +60,7 @@
 
 - El fitness máximo ronda 0.91 y no llega a 1. El sintetizador aditivo de 8 armónicos con una ADSR común no puede reproducir exactamente un piano real (martillo, inarmonicidad, decaimiento por armónico). El AG solo encuentra timbres que el sintetizador puede producir.
 - Cada evaluación es cara (síntesis + STFT). Por eso el fitness se mide sobre una sola nota (la referencia es una nota real de piano), no sobre la melodía.
-- El fitness en dB no equivale a la percepción humana; de ahí la encuesta.
+- El fitness en dB no equivale a la percepción humana: una mejora de 0.87 a 0.91 se nota poco al oído (encuesta: parecido 2.0 → 2.3 sobre 5).
 - Si la detección de pitch falla, el AG no lo corrige, porque evoluciona el timbre y no la melodía.
 
 **Referencias**
