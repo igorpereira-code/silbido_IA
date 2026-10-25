@@ -1,6 +1,6 @@
 # Informe: sección del Rol 1 (borrador)
 
-> Las cifras salen de `notebooks/rol1_codificacion.ipynb`. La sensibilidad de genes se calculó con el fitness **provisional**, decodificando con `rol1.decodificar`. Cuando exista `src/rol2_fitness.py` hay que volver a correr el notebook y actualizar esos números: el notebook usa el fitness real automáticamente. El resto (notas, codificación y espacio de búsqueda) no depende del fitness.
+> Las cifras salen de `notebooks/rol1_codificacion.ipynb`, ejecutado con los **módulos reales** de los cinco roles: el fitness del Rol 2 (STFT en dB contra una nota real de piano, `data/referencia.wav`), el AG del Rol 4 y los operadores C3 del Rol 3. El mejor individuo que usa el análisis de sensibilidad es el mismo que obtiene `final.ipynb` (semilla 42, fitness 0.9087).
 
 ## Rol 1: Representación del cromosoma
 
@@ -41,7 +41,7 @@ La grabación (`data/silbido.wav`) es real: mono, 22050 Hz, 16 bits, 7.6 s, con 
 
 Resultado (`rol1_deteccion_notas.png`): **12 notas**, Mi Mi Fa# Sol# Sol# Fa# Mi Fa Re Re# Do Do (MIDI 84–92). La melodía es reconocible, y las notas repetidas (Mi-Mi, Sol-Sol, Do-Do) salen separadas. Dos notas aparecen partidas en dos ("Mi-Fa" y "Re-Re#") porque al silbarlas el tono fue subiendo. Es fiel a la grabación.
 
-**Transposición: −24 (dos octavas).** El silbido está entre Do6 y Sol#6 (1047–1661 Hz). Con −12 la melodía quedaría en Do5–Sol#5, aguda para un piano. Con **−24** queda en **Do4–Sol#4 (262–415 Hz)**, alrededor del Do central y justo debajo de La4 = 440 Hz. La4 es la nota sobre la que el fitness compara el timbre, así que el timbre evolucionado se escucha en la zona para la que fue optimizado.
+**Transposición: −24 (dos octavas).** El silbido está entre Do6 y Sol#6 (1047–1661 Hz). Con −12 la melodía quedaría en Do5–Sol#5, aguda para un piano. Con **−24** queda en **Do4–Sol#4 (262–415 Hz)**, alrededor del Do central y justo debajo de La4 = 440 Hz. La4 es la nota sobre la que el fitness compara el timbre, así que el timbre evolucionado se escucha en la zona para la que fue optimizado. Esta transposición es la que usa `final.ipynb`: la melodía final queda en MIDI 60–68.
 
 ### Tamaño del espacio de búsqueda
 
@@ -49,43 +49,47 @@ El espacio es continuo, así que para contarlo se discretiza cada gen en *k* niv
 
 | Niveles por gen | Combinaciones | Fracción que explora el AG | Tiempo para probarlas todas |
 |---|---|---|---|
-| 10 | 10¹⁴ | 1.4·10⁻¹¹ | 7.9·10³ años |
-| **100** | **10²⁸** | **1.4·10⁻²⁵** | **7.9·10¹⁷ años** |
-| 1000 | 10⁴² | 1.4·10⁻³⁹ | 7.9·10³¹ años |
+| 10 | 10¹⁴ | 1.4·10⁻¹¹ | 1.2·10⁴ años |
+| **100** | **10²⁸** | **1.4·10⁻²⁵** | **1.2·10¹⁸ años** |
+| 1000 | 10⁴² | 1.4·10⁻³⁹ | 1.2·10³² años |
 
-Se usó el tiempo medido de 2.5 ms por evaluación. El AG del notebook final hace 30 + 50·28 = **1430 evaluaciones** por corrida. Con 100 niveles por gen, una búsqueda exhaustiva tardaría unas 56 millones de veces la edad del universo (1.4·10¹⁰ años). Por eso hace falta una búsqueda guiada como el AG. La representación ayuda en dos sentidos: usa pocos genes (14 en vez de miles de muestras) y escala cada gen según la percepción, así que el espacio que hay que buscar es el más chico posible sin perder sonidos útiles.
+Se usó el tiempo medido del fitness real del Rol 2: 3.6 ms por evaluación. El AG del notebook final hace 30 + 50·28 = **1430 evaluaciones** por corrida. Con 100 niveles por gen, una búsqueda exhaustiva tardaría unas 86 millones de veces la edad del universo (1.4·10¹⁰ años). Por eso hace falta una búsqueda guiada como el AG. La representación ayuda en dos sentidos: usa pocos genes (14 en vez de miles de muestras) y escala cada gen según la percepción, así que el espacio que hay que buscar es el más chico posible sin perder sonidos útiles.
 
 ### Sensibilidad de genes (Día 3)
 
-Para cada gen se recorrió su valor de 0 a 1 (21 niveles), dejando los demás fijos, en dos situaciones:
-- alrededor del óptimo conocido, `codificar(GEN_REFERENCIA)`;
+Para cada gen se recorrió su valor de 0 a 1 (21 niveles), dejando los demás fijos, y se midió el **fitness real del Rol 2**. Se hizo en dos situaciones:
+- alrededor del **mejor evolucionado**: el mejor individuo del AG con la misma configuración y semilla que `final.ipynb` (fitness 0.9087);
 - desde 10 individuos aleatorios, como los de las primeras generaciones.
 
 La sensibilidad es el rango del fitness (máx − mín) a lo largo del barrido. Se hicieron 3234 evaluaciones (`rol1_sensibilidad_genes.png`, `rol1_ranking_sensibilidad.png`).
 
-| Gen | Sensibilidad desde fondos aleatorios | Sensibilidad alrededor del óptimo |
-|---|---|---|
-| `sostenido` | **0.025** | **0.021** |
-| `vib_prof` | 0.012 | 0.000 |
-| `liberacion` | 0.012 | 0.004 |
-| `amp_h1` | 0.010 | **0.020** |
-| `amp_h8` | 0.008 | 0.009 |
-| `amp_h2` | 0.007 | 0.008 |
-| `amp_h7` | 0.007 | 0.007 |
-| `vib_frec` | 0.006 | 0.000 |
-| `decaimiento` | 0.006 | 0.012 |
-| `amp_h3` | 0.006 | 0.008 |
-| `amp_h6` | 0.006 | 0.007 |
-| `amp_h4` | 0.006 | 0.007 |
-| `amp_h5` | 0.005 | 0.006 |
-| `ataque` | 0.003 | **0.019** |
+| Gen | Sensibilidad desde fondos aleatorios | Sensibilidad alrededor del mejor evolucionado | Valor del gen en el mejor |
+|---|---|---|---|
+| `sostenido` | **0.082** | **0.083** | x = 0.037 (3.7 %) |
+| `ataque` | 0.032 | 0.036 | x = 0.043 (6 ms) |
+| `amp_h1` | 0.030 | 0.022 | x = 1.000 |
+| `vib_prof` | 0.025 | 0.015 | x = 0.847 |
+| `vib_frec` | 0.021 | 0.023 | x = 0.057 (0.45 Hz) |
+| `amp_h6` | 0.021 | 0.009 | x = 0.068 |
+| `liberacion` | 0.020 | 0.004 | x = 0.156 (33 ms) |
+| `decaimiento` | 0.017 | 0.036 | x = 0.633 (0.24 s) |
+| `amp_h2` | 0.016 | 0.014 | x = 0.913 |
+| `amp_h5` | 0.016 | 0.007 | x = 0.124 |
+| `amp_h3` | 0.015 | 0.014 | x = 1.000 |
+| `amp_h8` | 0.014 | 0.005 | x = 0.501 |
+| `amp_h4` | 0.014 | 0.010 | x = 0.333 |
+| `amp_h7` | 0.012 | 0.009 | x = 0.051 |
+
+Con el fitness real, los valores van de 0.77 a 0.91. Las diferencias entre genes son mucho más claras que con el fitness provisional.
 
 **Reporte al Rol 2:**
-- El **sostenido** es el gen más sensible en las dos situaciones. Es la "forma" principal de la envolvente.
-- **`ataque`, `amp_h1` y `decaimiento` casi no importan lejos del óptimo, pero cerca de él pesan mucho.** Sirven para el ajuste fino: el AG los afina en las últimas generaciones, cuando el resto ya está bien.
-- Los **armónicos altos (h3–h8)** influyen poco y de forma pareja. Ahí la superficie de fitness es casi plana y hay riesgo de deriva genética. Esto coincide con el tornado del Rol 5.
-- **Interacción entre los genes de vibrato (epistasis).** Alrededor del óptimo, `vib_frec` y `vib_prof` tienen sensibilidad 0. La razón es que, si uno vale 0, el otro no tiene efecto: el vibrato es `prof · sin(2π·frec·t)`. El efecto de un gen depende del valor de otro, así que el AG solo puede mejorar el vibrato moviendo los dos a la vez.
-- El fitness provisional está comprimido entre 0.94 y 1.0, y todas las diferencias son chicas. Con el fitness real hay que volver a correr el análisis.
+- El **sostenido** domina con diferencia: su sensibilidad es más del doble que la de cualquier otro gen. El mejor valor está casi en 0 (3.7 %), que es la envolvente de un piano: la nota se apaga sola después del golpe. Cuanto más sostenido, más se parece a un órgano y peor es el fitness.
+- El **ataque** es el segundo gen más importante y el fitness mejora cuanto más corto es: el mejor evolucionado tiene **6 ms**, un ataque percusivo. Es justo la zona a la que la escala logarítmica le da más resolución (un tercio del gen frente al 5.5 % de la escala lineal), así que la decisión de codificación ayudó a encontrarlo.
+- El **decaimiento** pesa poco lejos del mejor, pero mucho cerca de él (0.036). El fitness cae fuerte cuando supera ~0.5 s. Es un gen de ajuste fino: el AG lo afina al final, cuando el sostenido y el ataque ya están bien.
+- Los **armónicos** influyen poco y de forma pareja (0.005–0.022). El más importante es el fundamental (`amp_h1`), que quedó en el máximo. En los armónicos altos la superficie es casi plana, y por eso varían mucho entre semillas (ver la deriva de genes del Rol 4).
+- **Epistasis entre `sostenido` y `liberacion`.** Desde fondos aleatorios la liberación tiene una sensibilidad de 0.020, pero alrededor del mejor evolucionado casi no importa (0.004). Con un sostenido de 3.7 %, cuando llega la liberación la nota ya casi no suena, así que da igual cuánto dure. El efecto de un gen depende del valor de otro.
+- **Vibrato.** El mejor tiene una frecuencia muy baja (0.45 Hz), que con notas de 0.8 s no oscila: actúa como una pequeña desafinación lenta. Un piano real no tiene vibrato, así que convendría revisar si `vib_prof` alto aporta timbre o es un artefacto de la métrica.
+- Coincide con el tornado del Rol 5, que mueve cada gen ±0.2 alrededor del mejor: ahí también salen primero el sostenido, la frecuencia de vibrato y el decaimiento.
 
 ### Pregunta 1: ¿cómo influye la representación del cromosoma en la eficiencia del AG? Ejemplo de codificación mala y buena.
 
@@ -102,23 +106,24 @@ La representación decide qué espacio busca el AG y cómo se mueven los operado
 
 **Codificación buena: la usada aquí.** Son 14 parámetros físicos reales normalizados a [0, 1]:
 - La dimensión es baja: 14 genes, cada uno con significado acústico.
-- Tiene localidad: mover un gen un poco cambia el sonido un poco, como muestran las curvas suaves de sensibilidad.
+- Tiene localidad: mover un gen un poco cambia el sonido un poco, como muestran las curvas suaves de sensibilidad con el fitness real.
 - Todo vector es válido.
 - Los operadores reales del Rol 3 (BLX-α, mutación no uniforme) funcionan directamente.
 - La escala log en los tiempos reparte la búsqueda según la percepción.
 
-La evidencia está en el informe del Rol 5: con este cromosoma, el AG supera a la búsqueda aleatoria en 10 de 10 semillas (A₁₂ = 1.0) con solo 1430 evaluaciones.
+La evidencia está en la meta-evaluación del Rol 5 con los módulos reales: con este cromosoma, el AG supera a la búsqueda aleatoria en 10 de 10 semillas (A₁₂ = 1.0, p = 9·10⁻⁵) con solo 1430 evaluaciones. Además, el ataque evolucionado (6 ms) cae justo en la zona que la escala log amplía.
 
 ### Diapositiva "Representación"
 
 - **Título:** Representación: el cromosoma del instrumento.
-- **Visual:** una barra de 14 celdas con colores por grupo: 8 armónicos (timbre), 4 ADSR (envolvente) y 2 de vibrato. Debajo, una flecha `decodificar` hacia los valores físicos (por ejemplo, ataque 0.115 → 8 ms).
+- **Visual:** una barra de 14 celdas con colores por grupo: 8 armónicos (timbre), 4 ADSR (envolvente) y 2 de vibrato. Debajo, una flecha `decodificar` hacia los valores físicos (por ejemplo, el ataque del mejor evolucionado: gen 0.043 → 6 ms).
 - **Puntos:**
   - 14 genes reales en [0, 1], todos con significado físico. Cualquier vector es un sonido válido.
   - Tiempos en escala logarítmica: el 34 % del gen cubre los ataques percusivos (con escala lineal sería el 5.5 %).
   - Espacio de 10²⁸ combinaciones (con 100 niveles por gen). El AG lo resuelve con 1430 evaluaciones.
   - Silbido → 12 notas con pyin, más corrección de afinación (+0.21 st) y transposición de −24.
-- **Figuras:** `rol1_escala_lineal_vs_log.png` y `rol1_deteccion_notas.png`.
+  - Gen más sensible: el sostenido. El mejor evolucionado tiene un sostenido de 3.7 % y un ataque de 6 ms: una envolvente de piano.
+- **Figuras:** `rol1_escala_lineal_vs_log.png`, `rol1_deteccion_notas.png` y, si cabe, `rol1_ranking_sensibilidad.png`.
 
 **Referencias**
 - Eiben, A. E., & Smith, J. E. (2015). *Introduction to Evolutionary Computing* (2.ª ed.). Springer. Cap. 4 (representación y operadores).
