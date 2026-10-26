@@ -27,20 +27,24 @@ TOL_PREMATURA = 0.01         # a cuánto del mejor conocido debe quedar para NO 
 
 
 # ------------------------------------------------------------ configuraciones
+# Cuántas generaciones necesito para gastar las mismas evaluaciones con otra población.
 def generaciones_para_presupuesto(presupuesto, poblacion, elitismo):
     """Generaciones T tales que  poblacion + T*(poblacion-elitismo)  ≈ presupuesto."""
     return max(1, int(round((presupuesto - poblacion) / (poblacion - elitismo))))
 
 
+# Armo las 20 configuraciones: parto de la base y cambio UNA cosa a la vez.
 def configuraciones(base: dict) -> dict:
     """Devuelve {nombre: config}. Cada una cambia UN solo hiperparámetro de la base
     (excepto las de 'igual presupuesto', que además ajustan las generaciones)."""
     n0, e0, T0 = base["poblacion"], base["elitismo"], base["generaciones"]
     presupuesto = n0 + T0 * (n0 - e0)
 
+    # var copia la base y cambia solo lo que le pido.
     def var(**cambios):
         cfg = copy.deepcopy(base)
         for k, v in cambios.items():
+            # pm está dentro de 'operadores', por eso se cambia ahí.
             if k == "pm":
                 cfg["operadores"] = {**cfg["operadores"], "pm": v}
             else:
@@ -77,6 +81,7 @@ def configuraciones(base: dict) -> dict:
 
 
 # ------------------------------------------------------------ corridas
+# Mejor nota que se logró sin pasarme de cierta cantidad de evaluaciones.
 def _fitness_con_presupuesto(h, presupuesto):
     """Mejor fitness (max acumulado) usando a lo sumo `presupuesto` evaluaciones."""
     ev = np.array(h["evaluaciones"])
@@ -84,12 +89,14 @@ def _fitness_con_presupuesto(h, presupuesto):
     return float(np.max(h["max"][: ok[-1] + 1])) if len(ok) else float("nan")
 
 
+# Primera generación en que la diversidad cayó bajo 0.05 (la población colapsó).
 def _primera_gen_colapso(h):
     d = np.array(h["diversidad"])
     idx = np.where(d < UMBRAL_DIVERSIDAD)[0]
     return int(idx[0]) if len(idx) else np.nan
 
 
+# Corro cada configuración con cada semilla y anoto los resultados en una tabla.
 def correr_configuraciones(ag_fn, fitness_fn, cfgs, seeds=range(5), presupuesto_comun=400):
     """Corre cada configuración con cada semilla. Devuelve
     (df por corrida, historiales {nombre: [hist por semilla]}, mejores {nombre: [x por semilla]})."""
@@ -116,10 +123,12 @@ def correr_configuraciones(ag_fn, fitness_fn, cfgs, seeds=range(5), presupuesto_
             })
     df = pd.DataFrame(filas)
     mejor_conocido = df["fitness_final"].max()
+    # Prematura = poca diversidad y nota final lejos del mejor conocido.
     df["prematura"] = (df["div_final"] < UMBRAL_DIVERSIDAD) & (df["fitness_final"] < mejor_conocido - TOL_PREMATURA)
     return df, historiales, mejores
 
 
+# Promedio de las semillas por configuración y la diferencia contra la base.
 def tabla_resumen(df, presupuesto_comun=400):
     """Una fila por configuración: medias sobre las semillas y Δ respecto a 'base'."""
     col_pres = f"fit_{presupuesto_comun}ev"
@@ -140,12 +149,14 @@ def tabla_resumen(df, presupuesto_comun=400):
 
 
 # ------------------------------------------------------------ gráficos
+# Guarda el gráfico en una carpeta.
 def _guardar(fig, carpeta, nombre):
     if carpeta:
         os.makedirs(carpeta, exist_ok=True)
         fig.savefig(os.path.join(carpeta, nombre), dpi=130, bbox_inches="tight")
 
 
+# Junta los historiales en una tabla; np.pad repite el último valor si una corrida paró antes.
 def _matriz(hists, clave, largo=None):
     """Apila historiales (pueden tener largos distintos si hubo parada anticipada: se rellena
     repitiendo el último valor para poder promediar)."""
@@ -153,12 +164,14 @@ def _matriz(hists, clave, largo=None):
     return np.array([np.pad(h[clave], (0, largo - len(h[clave])), mode="edge") for h in hists])
 
 
+# Gráfico: nota máxima, nota media y diversidad de cada configuración.
 def graficar_convergencia(historiales, nombres, carpeta=None, nombre="rol4_convergencia.png"):
     """Para cada configuración elegida: fitness máximo y medio (con ±1 desv. entre semillas)
     y diversidad, todo contra la generación."""
     fig, ax = plt.subplots(1, 3, figsize=(15, 4))
     for i, n in enumerate(nombres):
         c = f"C{i}"
+        # mean(0) = promedio entre semillas; std = cuánto varían (la franja sombreada).
         mx, md, dv = (_matriz(historiales[n], k) for k in ("max", "media", "diversidad"))
         g = np.arange(mx.shape[1])
         ax[0].plot(g, mx.mean(0), color=c, label=n)
@@ -177,6 +190,7 @@ def graficar_convergencia(historiales, nombres, carpeta=None, nombre="rol4_conve
     return fig
 
 
+# Un gráfico chico por configuración.
 def graficar_todas(historiales, carpeta=None, nombre="rol4_convergencia_todas.png", columnas=4):
     """Una curva de convergencia POR CONFIGURACIÓN (máximo y media, ±1 desv. del máximo entre semillas)
     con la diversidad en el eje derecho."""
@@ -190,6 +204,7 @@ def graficar_todas(historiales, carpeta=None, nombre="rol4_convergencia_todas.pn
         a.plot(g, mx.mean(0), color="C0", label="máx")
         a.fill_between(g, mx.mean(0) - mx.std(0), mx.mean(0) + mx.std(0), color="C0", alpha=0.2)
         a.plot(g, md.mean(0), color="C1", label="media")
+        # twinx = segundo eje para dibujar la diversidad.
         b = a.twinx(); b.plot(g, dv.mean(0), color="C2", ls="--", lw=1); b.set_ylim(0, 1)
         a.set_title(n, fontsize=9); a.grid(alpha=0.3); a.set_xlabel("generación", fontsize=8)
     for a in axs[len(nombres):]:
@@ -201,6 +216,7 @@ def graficar_todas(historiales, carpeta=None, nombre="rol4_convergencia_todas.pn
     return fig
 
 
+# Nota contra evaluaciones: compara con el mismo costo.
 def graficar_vs_evaluaciones(historiales, nombres, carpeta=None, nombre="rol4_vs_evaluaciones.png"):
     """Fitness máximo contra EVALUACIONES acumuladas: comparación justa de costo."""
     fig, ax = plt.subplots(figsize=(7, 4.2))
@@ -217,6 +233,7 @@ def graficar_vs_evaluaciones(historiales, nombres, carpeta=None, nombre="rol4_vs
     return fig
 
 
+# Una línea por semilla, para ver la convergencia prematura.
 def graficar_estancamiento(historiales, nombre_cfg, carpeta=None, nombre="rol4_estancamiento.png"):
     """Fitness y diversidad de UNA configuración, una línea por semilla: se ve la convergencia
     prematura (diversidad ~0 con fitness aún bajo)."""
@@ -236,6 +253,7 @@ def graficar_estancamiento(historiales, nombre_cfg, carpeta=None, nombre="rol4_e
 
 
 # ------------------------------------------------------------ análisis
+# Mide cuánto cambia cada gen entre semillas: poco cambio = importa, mucho = da igual (deriva).
 def deriva_por_gen(mejores, nombres_genes, nombre_cfg="base"):
     """Desviación estándar de cada gen del mejor individuo ENTRE semillas. Si el gen importa, todas las
     corridas convergen a valores parecidos (desv. baja); si es casi neutral, cada corrida lo fija
@@ -246,6 +264,7 @@ def deriva_por_gen(mejores, nombres_genes, nombre_cfg="base"):
             .sort_values("desv_entre_semillas").reset_index(drop=True).round(3))
 
 
+# Cuánto cambia la nota entre el valor bajo y el alto de cada parámetro.
 def efecto_hiperparametros(df, presupuesto_comun=400):
     """Efecto de cada hiperparámetro = diferencia de fitness entre su valor alto y bajo (ambas
     lecturas: mismas generaciones y mismo presupuesto). Formato compatible con
@@ -253,6 +272,7 @@ def efecto_hiperparametros(df, presupuesto_comun=400):
     m = df.groupby("config")["fitness_final"].mean()
     mp = df.groupby("config")[f"fit_{presupuesto_comun}ev"].mean()
     base = m["base"]
+    # fila arma una fila de la tabla para un parámetro.
     def fila(factor, lo, hi, serie, b):
         return {"factor": factor, "valor_bajo": lo.split("=")[1], "valor_alto": hi.split("=")[1],
                 "fitness_bajo": serie[lo], "fitness_alto": serie[hi], "base": b,
@@ -261,6 +281,7 @@ def efecto_hiperparametros(df, presupuesto_comun=400):
              ("generaciones", "gen=25", "gen=100"), ("mutación pm", "pm=0.02", "pm=0.3")]
     mismas_gen = pd.DataFrame([fila(f, a, b, m, base) for f, a, b in pares])
     mismo_pres = pd.DataFrame([fila(f, a, b, mp, mp["base"]) for f, a, b in pares if f != "generaciones"])
+    # Población con el mismo presupuesto de evaluaciones.
     # población a igual presupuesto (lectura justa del tamaño de población)
     igual = pd.DataFrame([{"factor": "poblacion (=presup.)", "valor_bajo": "10", "valor_alto": "60",
                            "fitness_bajo": m["pob=10 (=presup.)"], "fitness_alto": m["pob=60 (=presup.)"],

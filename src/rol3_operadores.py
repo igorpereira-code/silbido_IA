@@ -179,7 +179,7 @@ def reproducir(pob, fit, cfg, t, T, rng, n_hijos=None):
     return reparar(hijos[:n_hijos])
 
 
-# ----------------------------- las 3 combinaciones que se comparan (Día 3)
+# ----------------------------- las 3 combinaciones que se comparan
 COMBINACIONES = {
     "C1 Explotación (torneo + blend α=0.3 + gaussiana σ=0.03)": {
         "seleccion": "torneo", "k": 3, "cruce": "blend", "alpha": 0.3,
